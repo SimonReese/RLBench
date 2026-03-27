@@ -77,3 +77,15 @@ class JointPositionActionMode(ActionMode):
     def action_bounds(self):
         """Returns the min and max of the action mode."""
         return np.array(7 * [-0.1] + [0.0]), np.array(7 * [0.1] + [0.04])
+
+
+class IdleActionMode(ActionMode):
+    """ An empty action mode to test the environment"""
+
+    def __init__(self, arm_action_mode: ArmActionMode = ArmActionMode(), gripper_action_mode: GripperActionMode = GripperActionMode()):
+        super().__init__(arm_action_mode, gripper_action_mode)
+
+    def action(self, scene: Scene, action: np.ndarray):
+        """Performs an empty step"""
+        scene.step()
+    

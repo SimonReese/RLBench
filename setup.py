@@ -29,7 +29,8 @@ core_requirements = [
     "Pillow",
     "pyquaternion",
     "scipy",
-    "natsort"
+    "natsort",
+    "gymnasium"
 ]
 
 setup(name='rlbench',

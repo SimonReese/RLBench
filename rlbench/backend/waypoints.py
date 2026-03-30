@@ -12,6 +12,7 @@ class Waypoint(object):
         self._waypoint = waypoint
         self._robot = robot
         self._ext = waypoint.get_extension_string()
+        """The extension string associated with the object"""
         self._ignore_collisions = ignore_collisions
         self._linear_only = False
         self._start_of_path_func = start_of_path_func

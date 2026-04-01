@@ -115,10 +115,11 @@ from rlbench.tasks.wipe_desk import WipeDesk
 from rlbench.tasks.slide_block import SlideBlock
 from rlbench.tasks.cube_container import CubeContainer
 
-SPATIAL_TASKS = [
-    SlideBlock,
-    CubeContainer
-]
+from enum import Enum
+class SpatialTasks(Enum):
+    SLIDE_BLOCK = SlideBlock
+    CUBE_CONTAINER = CubeContainer
+
 
 FS10_V1 = {
     'train': [

@@ -1,3 +1,6 @@
+from typing import List, Type
+
+from rlbench.backend.task import Task
 from rlbench.tasks.basketball_in_hoop import BasketballInHoop
 from rlbench.tasks.beat_the_buzz import BeatTheBuzz
 from rlbench.tasks.block_pyramid import BlockPyramid
@@ -115,11 +118,15 @@ from rlbench.tasks.wipe_desk import WipeDesk
 from rlbench.tasks.slide_block import SlideBlock
 from rlbench.tasks.cube_container import CubeContainer
 
-from enum import Enum
-class SpatialTasks(Enum):
+from enum import EnumMeta, Enum
+class SpatialTasks(EnumMeta):
     SLIDE_BLOCK = SlideBlock
     CUBE_CONTAINER = CubeContainer
 
+SPATIAL_TASKS = [
+    SlideBlock,
+    CubeContainer,
+]
 
 FS10_V1 = {
     'train': [

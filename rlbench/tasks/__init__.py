@@ -111,6 +111,15 @@ from rlbench.tasks.water_plants import WaterPlants
 from rlbench.tasks.weighing_scales import WeighingScales
 from rlbench.tasks.wipe_desk import WipeDesk
 
+# Spatial tasks
+from rlbench.tasks.slide_block import SlideBlock
+from rlbench.tasks.cube_container import CubeContainer
+
+SPATIAL_TASKS = [
+    SlideBlock,
+    CubeContainer
+]
+
 FS10_V1 = {
     'train': [
         ReachTarget,

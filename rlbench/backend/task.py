@@ -1,7 +1,7 @@
 import os
 import re
 from os.path import dirname, abspath, join
-from typing import List, Tuple, Callable, Union
+from typing import List, Sequence, Tuple, Callable, Union
 
 import numpy as np
 from pyrep import PyRep
@@ -198,7 +198,7 @@ class Task(object):
         """
         self._fail_conditions = condition
 
-    def register_graspable_objects(self, objects: List[Object]):
+    def register_graspable_objects(self, objects: Sequence[Object]):
         """Register what objects can be grasped with a 'stable' grasp.
 
         In order for objects to be grasped in a stable way, PyRep attaches an
@@ -332,6 +332,9 @@ class Task(object):
         self._waypoint_abilities_end = {}
 
     def get_base(self) -> Dummy:
+        """Returns the Dummy objects associated with the task, 
+        used to set all objects pose
+        """
         self._base_object = Dummy(self.name)
         return self._base_object
 

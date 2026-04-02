@@ -90,9 +90,23 @@ class BoundaryObject(object):
             min_rotation: tuple = (0.0, 0.0, -3.14),
             max_rotation: tuple = (0.0, 0.0, 3.14),
             min_distance: float = 0.01) -> int:
-        """Returns true if can add and adds it
-        rotation_limits: how mush we allow it to rotate from its original
-        position"""
+        """ Adds object inside the boundary, setting its position
+
+        :params obj: the Object to place in the Boundary. 
+        :params ignore_collsions: if ignore collisions when placing the object in the bboxes.
+            Set to true if you are happy with things being stacked on top of each other
+        :params min_rotation: a tuple (x, y, z) of minimum possible rotation along each axes
+        :params max_rotation: a tuple (x, y, z) of maximum possible rotation along each axes.
+            set rotation range to be (0, 0, 0) -> (0, 0, 0) if you don't want it to rotate
+        :params min_distance: min distance between objects
+        
+        
+        :returns 1: if the object is placed correctly
+        :returns -1: if the obj doesn't fit in the bbox
+        :returns -2: if the obj collides witgh another
+        :returns -3: if the obj is too close to another obj
+
+        """
 
         # Rotate the bounding box randomly
         if obj.is_model():
@@ -104,13 +118,15 @@ class BoundaryObject(object):
         obj_bbox = obj_bbox.rotate(rotation)
 
         if not obj_bbox.within_boundary(self._boundary_bbox, self._is_plane):
+            # We rotated the object bbox, but it doesnt fit inside this bbox
             return -1
-
+        # Set obj position and rotiation wrt this boundary
         new_pos = self._get_position_within_boundary(obj, obj_bbox)
         obj.set_position(new_pos, self._boundary)
         obj.rotate(list(rotation))
         new_pos = np.array(new_pos)
 
+        # Check if collinding with any other objects inside this bbox
         if not ignore_collisions:
             for contained_obj in self._contained_objects:
                 # Check for collision between each child
@@ -119,11 +135,12 @@ class BoundaryObject(object):
                     for placing_ob in obj.get_objects_in_tree(
                             exclude_base=False):
                         if placing_ob.check_collision(cont_ob):
-                            return -2
+                            return -2   # Collision detected
+                # Check min distance
                 dist = np.linalg.norm(
                     new_pos - contained_obj.get_position(self._boundary))
                 if dist < min_distance:
-                    return -3
+                    return -3   # min distance check fail
             self._contained_objects.append(obj)
         return 1
 
@@ -132,10 +149,16 @@ class BoundaryObject(object):
 
 
 class SpawnBoundary(object):
+    """A collection of one or more boundary boxes where objects can be placed"""
 
     MAX_SAMPLES = 100
+    """Maxumim number of retries when placing an object"""
 
     def __init__(self, boundaries: List[Object]):
+        """Creates the spawn boundary
+
+        :params boundaries: a List[Objects] that contains the possible spawn locations
+        """
         self._boundaries = []
         areas = []
         for b in boundaries:
@@ -147,19 +170,30 @@ class SpawnBoundary(object):
     def sample(self, obj: Object, ignore_collisions=False,
                min_rotation=(0.0, 0.0, -3.14), max_rotation=(0.0, 0.0, 3.14),
                min_distance=0.01) -> None:
-        """
-        returns a position within the specified boundary. Calculated using a
-            weighted percentage.
-        set ignore_collisions if you are happy with things being stacked on top of each other
-        set rotation_range to be (0, 0) if you don't want it to rotate
-        :return:
+        """ Set object to a random position in random boundary box in this SpawnBoundary
+
+        Tries to place an object up to 100 times (see SpawnBoundary.MAX_SAMPLES)
+
+        :params obj: the Object to place in the SpawnBoundary. 
+            Its position will be set to be inside one of the boundary boxes provided when constructing this SpawnBoundary
+        :params ignore_collsions: if ignore collisions when placing the object in the bboxes.
+            Set to true if you are happy with things being stacked on top of each other
+        :params min_rotation: a tuple (x, y, z) of minimum possible rotation along each axes
+        :params max_rotation: a tuple (x, y, z) of maximum possible rotation along each axes.
+            set rotation range to be (0, 0, 0) -> (0, 0, 0) if you don't want it to rotate
+        :params min_distance: min distance between objects
+
+        :raise BoundaryError: if obj could not be placed within boundary due to sizes
+        :raise BoundaryError: if obj could not be placed the object within the boundary due 
+            to collision with other objects in the boundary
         """
         collision_fails = boundary_fails = self.MAX_SAMPLES
         while collision_fails > 0 and boundary_fails > 0:
-            sampled_boundary = np.random.choice(self._boundaries,
+            sampled_boundary: BoundaryObject = np.random.choice(self._boundaries,
                                                 p=self._probabilities)
             result = sampled_boundary.add(
                 obj, ignore_collisions, min_rotation, max_rotation, min_distance)
+            # each fail decrements attempts
             if result == -1:
                 boundary_fails -= 1
             elif result == -2:

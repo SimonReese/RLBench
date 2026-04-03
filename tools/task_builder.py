@@ -49,6 +49,7 @@ def setup_list_completer():
     readline.set_completer(list_completer)
 
 
+
 class LoadedTask(object):
 
     def __init__(self, pr: PyRep, scene: Scene, robot: Robot):
@@ -265,6 +266,23 @@ class LoadedTask(object):
         self.save_task()
         print('Duplicate complete!')
 
+    # See https://github.com/stepjam/RLBench/issues/239#issue-2398156856
+    def import_3d_model(self, model_path):
+        assert self.task is not None
+        print('Importing 3D model from:', model_path)
+        if not isfile(model_path):
+            print_fail('Model file does not exist!')
+            return
+
+        try:
+            # See https://github.com/stepjam/PyRep/pull/140#issue-574176828
+            model = Shape.import_shape(model_path,scaling_factor=1)
+            #model = Shape.import_mesh(model_path,scaling_factor=1)
+            model.set_parent(self.task.get_base())
+            print('3D model imported successfully!')
+        except Exception as e:
+            print_fail('Failed to import 3D model!')
+            traceback.print_exc()
 
 if __name__ == '__main__':
 
@@ -315,6 +333,7 @@ if __name__ == '__main__':
             print('(s) to save the .ttm')
             print('(r) to rename the task')
             print('(u) to duplicate/copy the task')
+            print('(i) to import a model in the scene')
 
         inp = input()
 
@@ -352,6 +371,9 @@ if __name__ == '__main__':
                 loaded_task.rename()
             elif inp == 'u':
                 loaded_task.duplicate_task()
+            elif inp == 'i':
+                path = input("Please provide path to mesh file: ")
+                loaded_task.import_3d_model(path)
 
     pr.stop()
     pr.shutdown()

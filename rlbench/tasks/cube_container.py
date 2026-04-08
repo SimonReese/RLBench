@@ -75,8 +75,6 @@ class CubeContainer(Task):
         inverted = False
         # TODO: Use inverted also to change the grasping behaviour -> flip the grasping, approaching, placing 
         # dummy along downords z by 180 degrees so the picking and placing will be natural
-        # TODO: reduce angles a little bit, maybe 45 degrees
-        # TODO: add 2 variations: nearest and furtest wrt robot, choose the default R box as furthest but check inversion
         if index in (0, 1):
             # Sample scene rotations
             min_rot = (0, 0, -numpy.pi)
@@ -125,10 +123,7 @@ class CubeContainer(Task):
         self.approach_dummy = Dummy("approach_pose")
         self.grasp_dummy = Dummy("grasp_pose")
 
-        # Set position of waypoints
-        self.way0.set_pose(self.approach_dummy.get_pose())
-        self.way1.set_pose(self.grasp_dummy.get_pose())
-        self.way2.set_pose(self.approach_dummy.get_pose())
+        # Rotate the waypoint3 pose similar to graping pose
         self.way3.set_pose(self.approach_dummy.get_pose())  # To rotate the waypoint3 pose similar to graping pose
 
         # Choose appropriate variation

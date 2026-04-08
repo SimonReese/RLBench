@@ -1,15 +1,13 @@
-import os
-import time
 from typing import List, Tuple
+
 import numpy
-from pyrep.objects.object import Object
+from pyrep.backend.sim import simLoadModel
+from pyrep.objects import Dummy, ProximitySensor, Shape
 from rlbench.backend.conditions import DetectedCondition
 from rlbench.backend.spawn_boundary import SpawnBoundary
 from rlbench.backend.task import Task
-
-from pyrep.objects import Dummy, ProximitySensor, Shape
-from pyrep.backend.sim import simLoadModel, simGetObjectName, simGetObjectHandle
 from rlbench.backend.waypoints import Waypoint
+
 
 class CubeContainer(Task):
 
@@ -73,8 +71,6 @@ class CubeContainer(Task):
         # We use this when we need to swap the target (i.e: if object is spawned with more than 90° rot, 
         # the L/R boxes will be inverted wrt robot reference frame- )
         inverted = False
-        # TODO: Use inverted also to change the grasping behaviour -> flip the grasping, approaching, placing 
-        # dummy along downords z by 180 degrees so the picking and placing will be natural
         if index in (0, 1):
             if numpy.random.random() > 0.5:
                 # Sample scene rotations

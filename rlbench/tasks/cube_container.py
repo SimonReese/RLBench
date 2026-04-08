@@ -181,9 +181,18 @@ class CubeContainer(Task):
                 reference = Dummy("placeR")
                 self.success_sensor = self.sensorR
             instruction = f"Pick up the {obj_name} and place it on the {position} container with respect to the robot"
-
+        
         # Set waypoint3 to appropriate position (keeping grasping orientation)
         self.way3.set_position(reference.get_position())
+
+        # If the task is in "inverted" condition, we can flip orientations of approach, grasp an place positions
+        if inverted:
+            flip = [0, 0, 1, 0] # (x, y, z, w) quaternion -> flip 180° around z axis
+            self.approach_dummy.set_quaternion(flip, self.approach_dummy)
+            self.grasp_dummy.set_quaternion(flip, self.grasp_dummy)
+            self.way3.set_quaternion(flip, self.way3)
+            reference.set_quaternion(flip, reference)   # At the moment is useful to do this since we only use its position
+
         # Register success condition
         success_condition = DetectedCondition(self.object, self.success_sensor)
         self.register_success_conditions([success_condition])

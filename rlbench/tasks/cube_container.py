@@ -62,7 +62,7 @@ class CubeContainer(Task):
             - 0: left container
             - 1: right container
 
-            WRT robot (up to ± 60° rotations):
+            WRT robot (up to ± 45° rotations):
             - 2: left container
             - 3: right container
         """
@@ -79,14 +79,14 @@ class CubeContainer(Task):
             max_rot = (0, 0, +numpy.pi)
         else:
         #elif index in (2, 3):
-            # We need 2 spaces: ±60 and (+120, +240)
-            if numpy.random.random() > 0.5:     # ± 60
-                min_rot = (0, 0, -numpy.pi/3)
-                max_rot = (0, 0, numpy.pi/3)
-            else:                               # 120->240
+            # We need 2 spaces: ±45 and (+135, +225)
+            if numpy.random.random() > 0.5:     # ± 45
+                min_rot = (0, 0, -numpy.pi/4)
+                max_rot = (0, 0, numpy.pi/4)
+            else:                               # 135->225
                 inverted = True # The boxes will be opposite wrt the robot pov
-                min_rot = (0, 0, numpy.pi * (2.0/3.0))
-                max_rot = (0, 0, numpy.pi * (4.0/3.0))
+                min_rot = (0, 0, numpy.pi * (3.0/4.0))
+                max_rot = (0, 0, numpy.pi * (5.0/4.0))
 
         self.spawn_boundary.clear()
         self.spawn_boundary.sample(self.obj_place, min_rotation=min_rot, max_rotation=max_rot)

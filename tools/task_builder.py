@@ -170,10 +170,12 @@ class LoadedTask(object):
         print('Task saved to:', ttm_path)
 
     def run_task_validator(self):
+        assert self.task is not None
+        self.task: task.Task
         print('About to perform task validation.')
         print("What variation to test? Pick int in range: 0 to %d, or -1 to "
               "test all. Or press 'e' to exit."
-              % self.task.variation_count())
+              % (self.task.variation_count() -1 ))
         inp = input()
         if inp == 'e':
             return

@@ -76,9 +76,14 @@ class CubeContainer(Task):
         # TODO: Use inverted also to change the grasping behaviour -> flip the grasping, approaching, placing 
         # dummy along downords z by 180 degrees so the picking and placing will be natural
         if index in (0, 1):
-            # Sample scene rotations
-            min_rot = (0, 0, -numpy.pi)
-            max_rot = (0, 0, +numpy.pi)
+            if numpy.random.random() > 0.5:
+                # Sample scene rotations
+                min_rot = (0, 0, -numpy.pi/2)
+                max_rot = (0, 0, +numpy.pi/2)
+            else:
+                inverted = True # The boxes will be the same, only grasping point will be flipped
+                min_rot = (0, 0, numpy.pi/2)
+                max_rot = (0, 0, numpy.pi * (3.0/2.0))
 
         elif index in (2, 3):
             # We need 2 spaces: ±45 and (+135, +225)

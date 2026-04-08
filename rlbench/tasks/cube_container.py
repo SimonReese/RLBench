@@ -65,6 +65,10 @@ class CubeContainer(Task):
             WRT robot (up to ± 45° rotations):
             - 2: left container
             - 3: right container
+
+            WRT robot (from 45° to 135° rotations):
+            - 4: nearest container (defualt is L container if not inverted)
+            - 5: furthest container (default is R container if not inverted)
         """
         # We use this when we need to swap the target (i.e: if object is spawned with more than 90° rot, 
         # the L/R boxes will be inverted wrt robot reference frame- )
@@ -77,8 +81,8 @@ class CubeContainer(Task):
             # Sample scene rotations
             min_rot = (0, 0, -numpy.pi)
             max_rot = (0, 0, +numpy.pi)
-        else:
-        #elif index in (2, 3):
+
+        elif index in (2, 3):
             # We need 2 spaces: ±45 and (+135, +225)
             if numpy.random.random() > 0.5:     # ± 45
                 min_rot = (0, 0, -numpy.pi/4)
@@ -87,6 +91,17 @@ class CubeContainer(Task):
                 inverted = True # The boxes will be opposite wrt the robot pov
                 min_rot = (0, 0, numpy.pi * (3.0/4.0))
                 max_rot = (0, 0, numpy.pi * (5.0/4.0))
+
+        else: # index in (4, 5)
+            # We rotate in ranges (+45, +135) and (+225, +315)
+            if numpy.random.random() > 0.5:     # (+45, +135)
+                min_rot = (0, 0, numpy.pi/4)
+                max_rot = (0, 0, numpy.pi * 3.0/4.0)
+            else:                               # (+225, +315)
+                inverted = True # The boxes will be opposite wrt the robot pov
+                min_rot = (0, 0, numpy.pi * (5.0/4.0))
+                max_rot = (0, 0, numpy.pi * (7.0/4.0))
+
 
         self.spawn_boundary.clear()
         self.spawn_boundary.sample(self.obj_place, min_rotation=min_rot, max_rotation=max_rot)
@@ -128,6 +143,7 @@ class CubeContainer(Task):
             reference = Dummy("placeR")
             self.success_sensor = self.sensorR
             instruction = f"Pick up the {obj_name} and place it on the container on its {position} side"
+        
         elif index == 2:
             # Left wrt robot, but check if inverted spawn position
             position = "left"
@@ -138,7 +154,7 @@ class CubeContainer(Task):
                 reference = Dummy("placeL")
                 self.success_sensor = self.sensorL
             instruction = f"Pick up the {obj_name} and place it on the container on the {position} side with respect to the robot"
-        else:    # index == 3
+        elif index == 3:
             # Right wrt robot, but check if inverted spawn position
             position = "right"
             if inverted:
@@ -148,6 +164,28 @@ class CubeContainer(Task):
                 reference = Dummy("placeR")
                 self.success_sensor = self.sensorR
             instruction = f"Pick up the {obj_name} and place it on the container on the {position} side with respect to the robot"
+        
+        elif index == 4:
+            # Nearest container, left if not inverted
+            position = "nearest"
+            if inverted:
+                reference = Dummy("placeR")
+                self.success_sensor = self.sensorR
+            else:
+                reference = Dummy("placeL")
+                self.success_sensor = self.sensorL
+            instruction = f"Pick up the {obj_name} and place it on the {position} container with respect to the robot"
+        
+        else: #index == 5:
+            # Furthest container, right if not inverted
+            position = "furthest"
+            if inverted:
+                reference = Dummy("placeL")
+                self.success_sensor = self.sensorL
+            else:
+                reference = Dummy("placeR")
+                self.success_sensor = self.sensorR
+            instruction = f"Pick up the {obj_name} and place it on the {position} container with respect to the robot"
 
         # Set waypoint3 to appropriate position (keeping grasping orientation)
         self.way3.set_position(reference.get_position())
@@ -159,7 +197,7 @@ class CubeContainer(Task):
         return [instruction]
 
     def variation_count(self) -> int:
-        return 4
+        return 6
 
     def cleanup(self) -> None:
         # Remove added object

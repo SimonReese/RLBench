@@ -118,11 +118,14 @@ from rlbench.tasks.wipe_desk import WipeDesk
 from rlbench.tasks.slide_block import SlideBlock
 from rlbench.tasks.cube_container import CubeContainer
 from rlbench.tasks.unload_container import UnloadContainer
+from rlbench.tasks.container_place import ContainerPlace
 
 from enum import EnumMeta, Enum
 class SpatialTasks(EnumMeta):
     SLIDE_BLOCK = SlideBlock
     CUBE_CONTAINER = CubeContainer
+    UNLOAD_CONTAINER = UnloadContainer
+    CONTAINER_PLACE = ContainerPlace
 
 SPATIAL_TASKS = [
     SlideBlock,

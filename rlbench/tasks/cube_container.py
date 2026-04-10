@@ -121,8 +121,10 @@ class CubeContainer(Task):
         self.register_graspable_objects([self.object])
 
         # Get key position
-        self.approach_dummy = Dummy("approach_pose")
-        self.grasp_dummy = Dummy("grasp_pose")
+        model_name = self.object.get_name()
+        grasp_name = "top"
+        self.approach_dummy = Dummy(f"{model_name}_{grasp_name}_approach_pose")
+        self.grasp_dummy = Dummy(f"{model_name}_{grasp_name}_grasp_pose")
 
         # Rotate the waypoint3 pose similar to graping pose
         self.way3.set_pose(self.approach_dummy.get_pose())  # To rotate the waypoint3 pose similar to graping pose

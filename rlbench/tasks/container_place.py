@@ -50,21 +50,24 @@ class ContainerPlace(Task):
         else:
             target_box = "placeR"
 
-        # # Spaw objects randomly
-        # for position in self.POSITIONS:
-        #     location = Dummy(position)
-        #     idx = numpy.random.randint(len(self.OBJECTS))
-        #     object_name = self.OBJECTS.pop(idx)
-        #     # Place object
-        #     obj = Shape(object_name)
-        #     obj.set_position(location.get_position())
-        #     # Store object to position
-        #     OBJ_POS_MAPPING.append((object_name, position))
-        #     # If we are in target box, we store the object as target
-        #     if position == target_box:
-        #         self.target_object = obj
+        # Spaw objects randomly
+        for position in POSITIONS:
+            location = Dummy(position)
+            # Pick random object
+            idx = numpy.random.randint(len(OBJECTS))
+            object_name = OBJECTS.pop(idx)
 
-        self.target_object = Shape("cartoy")
+            # Place object
+            obj = Shape(object_name)
+            obj.set_position(location.get_position())
+
+            # Store object to position
+            OBJ_POS_MAPPING.append((object_name, position))
+            # If we are in target box, we store the object as target
+            if position == target_box:
+                self.target_object = obj
+
+        #self.target_object = Shape("cartoy")
               
         # 3 variations: middle, front and back
         # Move the scene accordingly
@@ -82,21 +85,9 @@ class ContainerPlace(Task):
         self.scene_placement.set_position(scene_placement.get_position())
         
         # Set waypoints
-        assert self.target_object is not None
-        assert self.target_position is not None
-        self.way0.set_pose(
-            Dummy(f"{self.target_object.get_name()}_top_approach_pose").get_pose()
-        )
-        self.way1.set_pose(
-            Dummy(f"{self.target_object.get_name()}_top_approach_pose").get_pose()
-        )
-        self.way2.set_pose(
-            Dummy(f"{self.target_object.get_name()}_top_approach_pose").get_pose()
-        )
         self.way3.set_pose( # Set pose as grasping for orientation
             Dummy(f"{self.target_object.get_name()}_top_grasp_pose").get_pose()
         )
-        self.way3.set_position(self.target_position.get_position())
 
         return ['']
 
@@ -132,7 +123,3 @@ class ContainerPlace(Task):
         )
 
         self.way3.set_position(self.target_position.get_position())
-
-        start = time.time()
-        while time.time() - start < 5:
-            self.pyrep.step()

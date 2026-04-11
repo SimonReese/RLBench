@@ -60,12 +60,15 @@ class ContainerPlace(Task):
             # Place object
             obj = Shape(object_name)
             obj.set_position(location.get_position())
+            obj.set_parent(location) # Set object parent accordingly
+            # TODO: can we set ^ above with keep_position = False to let position adjust in one call?
 
             # Store object to position
             OBJ_POS_MAPPING.append((object_name, position))
             # If we are in target box, we store the object as target
             if position == target_box:
                 self.target_object = obj
+            
 
         #self.target_object = Shape("cartoy")
               

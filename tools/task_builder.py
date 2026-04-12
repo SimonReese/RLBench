@@ -250,10 +250,10 @@ class LoadedTask(object):
         handle = Dummy(self.task_file.replace('.py', ''))
         handle.set_name(name)
 
-        with open(old_file_path, 'r') as f:
+        with open(old_file_path, 'r', encoding="UTF-8") as f:
             content = f.read()
         content = content.replace(old_class_name, new_class_name)
-        with open(new_file_path, 'w') as f:
+        with open(new_file_path, 'w', encoding="UTF-8") as f:
             f.write(content)
 
         # Rename .ttt

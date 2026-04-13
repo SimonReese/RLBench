@@ -11,6 +11,14 @@ from pyrep.backend import sim
 
 
 class ObjectContainer(Task):
+    """ Place an object in one of the four container around it
+
+        Variations WRT object (all possible roations):
+            - 0: left container
+            - 1: right container
+            - 2: front container
+            - 3: back container
+    """
 
     OBJECT_NAMES = [
         "toy car",
@@ -61,9 +69,7 @@ class ObjectContainer(Task):
 
     def init_episode(self, index: int) -> List[str]:
         """
-            Variations:
-
-            WRT object (all possible roations):
+            Variations WRT object (all possible roations):
             - 0: left container
             - 1: right container
             - 2: front container
@@ -77,7 +83,7 @@ class ObjectContainer(Task):
         object_index = numpy.random.randint(len(self.OBJECT_NAMES))
         obj_name = self.OBJECT_NAMES[object_index]
         obj_path = self.OBJECT_PATHS[object_index]
-        print(f"Trying to load {obj_name}")
+        #print(f"Trying to load {obj_name}")
         model_handle = simLoadModel(obj_path) # spawn object
         self.object = Shape(model_handle)
         self.object.set_parent(self.obj_place)
@@ -146,7 +152,7 @@ class ObjectContainer(Task):
         success_condition = DetectedCondition(self.object, self.success_sensor)
         self.register_success_conditions([success_condition])
         
-        print(instruction)
+        #print(instruction)
         return [instruction]
 
     def variation_count(self) -> int:
@@ -160,7 +166,7 @@ class ObjectContainer(Task):
         for box in self.hidden:
             box.set_renderable(True)
             value:int = sim.simGetObjectInt32Parameter(box.get_handle(), sim.sim_objintparam_visibility_layer)
-            print(f"Box has visibility value: {value}({'0:b'.format(value)})")
+            #print(f"Box has visibility value: {value}({'0:b'.format(value)})")
             sim.simSetObjectInt32Parameter(box.get_handle(), sim.sim_objintparam_visibility_layer, 1)
     
     def base_rotation_bounds(self) -> Tuple[Tuple[float, float, float], Tuple[float, float, float]]:

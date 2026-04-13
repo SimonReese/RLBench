@@ -10,6 +10,16 @@ from rlbench.backend.waypoints import Waypoint
 
 
 class CubeContainer(Task):
+    """ Place an object in one of the two container on its side
+
+        Variations (WRT robot):
+            - (up to ± 45° rotations):
+                - 0: left container
+                - 1: right container
+            - (from 45° to 135° rotations):
+                - 2: nearest container
+                - 3: furthest container
+    """
 
     OBJECT_NAMES = [
         "toy car",
@@ -54,34 +64,18 @@ class CubeContainer(Task):
 
     def init_episode(self, index: int) -> List[str]:
         """
-            Variations:
-
-            WRT object (all possible roations):
-            - 0: left container
-            - 1: right container
-
-            WRT robot (up to ± 45° rotations):
-            - 2: left container
-            - 3: right container
-
-            WRT robot (from 45° to 135° rotations):
-            - 4: nearest container (defualt is L container if not inverted)
-            - 5: furthest container (default is R container if not inverted)
+             Variations (WRT robot):
+            - (up to ± 45° rotations):
+                - 0: left container
+                - 1: right container
+            - (from 45° to 135° rotations):
+                - 2: nearest container (defualt is L container if not inverted)
+                - 3: furthest container (default is R container if not inverted)
         """
         # We use this when we need to swap the target (i.e: if object is spawned with more than 90° rot, 
         # the L/R boxes will be inverted wrt robot reference frame- )
         inverted = False
         if index in (0, 1):
-            if numpy.random.random() > 0.5:
-                # Sample scene rotations
-                min_rot = (0, 0, -numpy.pi/2)
-                max_rot = (0, 0, +numpy.pi/2)
-            else:
-                inverted = True # The boxes will be the same, only grasping point will be flipped
-                min_rot = (0, 0, numpy.pi/2)
-                max_rot = (0, 0, numpy.pi * (3.0/2.0))
-
-        elif index in (2, 3):
             # We need 2 spaces: ±45 and (+135, +225)
             if numpy.random.random() > 0.5:     # ± 45
                 min_rot = (0, 0, -numpy.pi/4)
@@ -91,7 +85,7 @@ class CubeContainer(Task):
                 min_rot = (0, 0, numpy.pi * (3.0/4.0))
                 max_rot = (0, 0, numpy.pi * (5.0/4.0))
 
-        else: # index in (4, 5)
+        else: #index in (2, 3):
             # We rotate in ranges (+45, +135) and (+225, +315)
             if numpy.random.random() > 0.5:     # (+45, +135)
                 min_rot = (0, 0, numpy.pi/4)
@@ -109,7 +103,7 @@ class CubeContainer(Task):
         object_index = numpy.random.randint(len(self.OBJECT_NAMES))
         obj_name = self.OBJECT_NAMES[object_index]
         obj_path = self.OBJECT_PATHS[object_index]
-        print(f"Trying to load {obj_name}")
+        #print(f"Trying to load {obj_name}")
         model_handle = simLoadModel(obj_path) # spawn object
         self.object = Shape(model_handle)
         self.object.set_parent(self.obj_place)
@@ -130,19 +124,8 @@ class CubeContainer(Task):
         self.way3.set_pose(self.approach_dummy.get_pose())  # To rotate the waypoint3 pose similar to graping pose
 
         # Choose appropriate variation
-        # set textual position, refrence dummy, sensor and generate appropriate task instuction
+        # set textual position, refrence dummy, sensor and generate appropriate task instuction        
         if index == 0:
-            position = "left"
-            reference = Dummy("placeL")
-            self.success_sensor = self.sensorL
-            instruction = f"Pick up the {obj_name} and place it on the container on its {position} side"
-        elif index == 1:
-            position = "right"
-            reference = Dummy("placeR")
-            self.success_sensor = self.sensorR
-            instruction = f"Pick up the {obj_name} and place it on the container on its {position} side"
-        
-        elif index == 2:
             # Left wrt robot, but check if inverted spawn position
             position = "left"
             if inverted:
@@ -152,7 +135,7 @@ class CubeContainer(Task):
                 reference = Dummy("placeL")
                 self.success_sensor = self.sensorL
             instruction = f"Pick up the {obj_name} and place it on the container on the {position} side with respect to the robot"
-        elif index == 3:
+        elif index == 1:
             # Right wrt robot, but check if inverted spawn position
             position = "right"
             if inverted:
@@ -163,7 +146,7 @@ class CubeContainer(Task):
                 self.success_sensor = self.sensorR
             instruction = f"Pick up the {obj_name} and place it on the container on the {position} side with respect to the robot"
         
-        elif index == 4:
+        elif index == 2:
             # Nearest container, left if not inverted
             position = "nearest"
             if inverted:
@@ -174,7 +157,7 @@ class CubeContainer(Task):
                 self.success_sensor = self.sensorL
             instruction = f"Pick up the {obj_name} and place it on the {position} container with respect to the robot"
         
-        else: #index == 5:
+        else: #index == 3:
             # Furthest container, right if not inverted
             position = "furthest"
             if inverted:
@@ -200,11 +183,11 @@ class CubeContainer(Task):
         success_condition = DetectedCondition(self.object, self.success_sensor)
         self.register_success_conditions([success_condition])
         
-        print(instruction)
+        #print(instruction)
         return [instruction]
 
     def variation_count(self) -> int:
-        return 6
+        return 4
 
     def cleanup(self) -> None:
         # Remove added object

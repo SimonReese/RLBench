@@ -11,6 +11,18 @@ from rlbench.backend.spawn_boundary import SpawnBoundary
 from rlbench.backend.conditions import DetectedCondition
 
 class ContainerPlace(Task):
+    """ Place one of the two objects on the sides of the table in one of the three positions 
+        in the middle of the table, with respect to the objecs (in front, behind or in between them)
+        Variations:
+        - WRT Robot:
+            - 0: middle
+            - 1: front
+            - 2: behind
+        - WRT Object:
+            - 3: middle
+            - 4: front
+            - 5: behind
+    """
 
     # Available spawn positions
     POSITIONS = [
@@ -49,15 +61,15 @@ class ContainerPlace(Task):
 
     def init_episode(self, index: int) -> List[str]:
         """
-        Variations:
-            - WRT Robot:
-                - 0: middle
-                - 1: front
-                - 2: behind
-            - WRT Object:
-                - 3: middle
-                - 4: front
-                - 5: behind
+            Variations:
+                - WRT Robot:
+                    - 0: middle
+                    - 1: front
+                    - 2: behind
+                - WRT Object:
+                    - 3: middle
+                    - 4: front
+                    - 5: behind
         """
 
         # NOTE: this code is messy and requires a lot of refactoring
@@ -203,7 +215,7 @@ class ContainerPlace(Task):
             f"and place it {txt_position}, " + 
             f"{txt_reference}"
         )
-        print(instruction)
+        #print(instruction)
 
         # 6: Success conditions
         if index in (0, 3):

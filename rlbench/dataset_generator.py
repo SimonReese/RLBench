@@ -10,7 +10,7 @@ from pyrep.const import RenderMode
 import rlbench.backend.task as task
 from rlbench import ObservationConfig
 from rlbench.action_modes.action_mode import MoveArmThenGripper
-from rlbench.action_modes.arm_action_modes import JointVelocity
+from rlbench.action_modes.arm_action_modes import EndEffectorPoseViaPlanning, JointVelocity, RelativeFrame
 from rlbench.action_modes.gripper_action_modes import Discrete
 from rlbench.backend import utils
 from rlbench.backend.const import *
@@ -189,8 +189,15 @@ def run(i, lock, task_index, variation_count, results, file_lock, tasks, args):
         obs_config.wrist_camera.render_mode = RenderMode.OPENGL3
         obs_config.front_camera.render_mode = RenderMode.OPENGL3
 
+    if args.arm_action_mode == 'JointVelocity':
+        arm_action_mode = JointVelocity()
+    elif args.arm_action_mode == 'EndEffectorPoseViaPlanning':
+        arm_action_mode = EndEffectorPoseViaPlanning(absolute_mode=False, frame=RelativeFrame.EE)
+    else: # default case for now
+        arm_action_mode = JointVelocity()
+
     rlbench_env = Environment(
-        action_mode=MoveArmThenGripper(JointVelocity(), Discrete()),
+        action_mode=MoveArmThenGripper(arm_action_mode, Discrete()),
         obs_config=obs_config,
         arm_max_velocity=args.arm_max_velocity,
         arm_max_acceleration=args.arm_max_acceleration,
@@ -291,6 +298,8 @@ def parse_args():
     parser.add_argument('--variations', type=int, default=-1, help='Number of variations to collect per task. -1 for all.')
     parser.add_argument('--arm_max_velocity', type=float, default=1.0, help='Max arm velocity used for motion planning.')
     parser.add_argument('--arm_max_acceleration', type=float, default=4.0, help='Max arm acceleration used for motion planning.')
+    # # Even if we add custom environment arm action mode in dataset_generator, the observations still have gripper tip position wrt world because Scene.get_observation will do robot.arm.get_tip().get_pose()
+    parser.add_argument('--arm_action_mode', type=str, default='JointVelocity', choices=['JointVelocity', 'EndEffectorPoseViaPlanning'], help='The controller used to move the robot')
     return parser.parse_args()
 
 

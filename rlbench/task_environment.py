@@ -1,5 +1,5 @@
 import logging
-from typing import List, Callable
+from typing import List, Callable, Tuple
 
 import numpy as np
 from pyrep import PyRep
@@ -72,7 +72,7 @@ class TaskEnvironment(object):
     def variation_count(self) -> int:
         return self._task.variation_count()
 
-    def reset(self, demo = None) -> (List[str], Observation):
+    def reset(self, demo = None) -> Tuple[List[str], Observation]:
         self._scene.reset()
         try:
             place_demo = demo != None and hasattr(demo, 'num_reset_attempts') and demo.num_reset_attempts != None
@@ -92,7 +92,10 @@ class TaskEnvironment(object):
     def get_observation(self) -> Observation:
         return self._scene.get_observation()
 
-    def step(self, action) -> (Observation, int, bool):
+    def step(self, action) -> Tuple[Observation, int, bool]:
+        """
+            Returns observation, reward, terminate
+        """
         # returns observation, reward, done, info
         if not self._reset_called:
             raise RuntimeError(
@@ -162,7 +165,7 @@ class TaskEnvironment(object):
                     'Could not collect demos. Maybe a problem with the task?')
         return demos
 
-    def reset_to_demo(self, demo: Demo) -> (List[str], Observation):
+    def reset_to_demo(self, demo: Demo) -> Tuple[List[str], Observation]:
         demo.restore_state()
         variation_index = demo._observations[0].misc["variation_index"]
         self.set_variation(variation_index)

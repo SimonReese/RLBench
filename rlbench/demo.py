@@ -4,6 +4,10 @@ from rlbench.backend.observation import Observation
 
 
 class Demo(object):
+    """ A Demo is an instance of complete execution of a task, that is a specific episode for a specific variation for a specific task.
+
+    Contains a list of observations, where each observation is a step in an instant
+    """
 
     def __init__(self, observations: List[Observation], random_seed=None, num_reset_attempts=None):
         self._observations = observations

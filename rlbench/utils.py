@@ -43,6 +43,21 @@ def get_stored_demos(amount: int, image_paths: bool, dataset_root: str,
                      obs_config: ObservationConfig,
                      random_selection: bool = True,
                      from_episode_number: int = 0) -> List[Demo]:
+    """ Returns an episode as a list of observations from stored dataset for a given task and variation
+
+        :param amount: how many examples to extract. Set -1 to extract all obs. Throws RuntimeError if not enough avaialble
+        :param image_paths: if False, images will be stored as array inside the observations. Otherwise, the observations will contain the path
+        :param dataset_root: path to the root folder of the dataset. It will be the one where ROOT/task_name0/variation0/..., ROOT/task_name1 ...
+        :param variation_number: the index of the variation to retreive
+        :param task_name: name of the task to retreive
+        :param obs_config: the observation configuration. Images will be resized if needed, but only if stored in obs dict
+        :param random_selection: if true will retrive an amount of random example episodes
+        :param from_episode_number: if random selection is false, will retrieve amount episodes starting from episode from_episode_number
+
+        :returns: a list of Demo, one Demo for each episode. The episodes will be sorted
+
+        :raise: RuntimeError if not enough obs avaialble
+    """
 
     task_root = join(dataset_root, task_name)
     if not exists(task_root):
@@ -91,6 +106,7 @@ def get_stored_demos(amount: int, image_paths: bool, dataset_root: str,
 
         num_steps = len(obs)
 
+        # Checks integrty of dataset (number of steps must be the same number of images in each image folder)
         if not (num_steps == len(listdir(l_sh_rgb_f)) == len(
                 listdir(l_sh_depth_f)) == len(listdir(r_sh_rgb_f)) == len(
                 listdir(r_sh_depth_f)) == len(listdir(oh_rgb_f)) == len(
@@ -99,6 +115,7 @@ def get_stored_demos(amount: int, image_paths: bool, dataset_root: str,
                 listdir(front_depth_f))):
             raise RuntimeError('Broken dataset assumption')
 
+        # For every step, store path to corresponding image in the observation dictionary
         for i in range(num_steps):
             si = IMAGE_FORMAT % i
             if obs_config.left_shoulder_camera.rgb:
@@ -150,6 +167,7 @@ def get_stored_demos(amount: int, image_paths: bool, dataset_root: str,
             if not obs_config.task_low_dim_state:
                 obs[i].task_low_dim_state = None
 
+        # If we need to have images as array in observation dictionary (and not path), we load each array image in dictionary
         if not image_paths:
             for i in range(num_steps):
                 if obs_config.left_shoulder_camera.rgb:

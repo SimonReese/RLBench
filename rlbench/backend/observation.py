@@ -60,6 +60,7 @@ class Observation(object):
         self.joint_forces = joint_forces
         self.gripper_open = gripper_open
         self.gripper_pose = gripper_pose
+        """Gripper pose (x, y, z, qx, qy, qz, qw)"""
         self.gripper_matrix = gripper_matrix
         self.gripper_joint_positions = gripper_joint_positions
         self.gripper_touch_forces = gripper_touch_forces

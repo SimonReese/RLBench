@@ -28,6 +28,7 @@ def assert_unit_quaternion(quat):
 
 
 def calculate_delta_pose(robot: Robot, action: np.ndarray):
+    """Returns a new pose in WORLD frame given a delta action in world frame"""
     a_x, a_y, a_z, a_qx, a_qy, a_qz, a_qw = action
     x, y, z, qx, qy, qz, qw = robot.arm.get_tip().get_pose()
     new_rot = Quaternion(
@@ -216,6 +217,7 @@ class EndEffectorPoseViaPlanning(ArmActionMode):
                                      'target is outside of workspace.')
 
     def _pose_in_end_effector_frame(self, robot: Robot, action: np.ndarray):
+        """Returns a new pose in WORLD frame given a delta action in world frame"""
         a_x, a_y, a_z, a_qx, a_qy, a_qz, a_qw = action
         x, y, z, qx, qy, qz, qw = robot.arm.get_tip().get_pose()
         new_rot = Quaternion(
@@ -225,6 +227,7 @@ class EndEffectorPoseViaPlanning(ArmActionMode):
         return pose
 
     def action(self, scene: Scene, action: np.ndarray):
+        """The action must have size 7: (x, y, z, qx, qy, qz, qw)"""
         assert_action_shape(action, (7,))
         assert_unit_quaternion(action[3:])
         if not self._absolute_mode and self._frame != RelativeFrame.EE:

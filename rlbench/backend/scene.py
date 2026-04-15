@@ -93,6 +93,7 @@ class Scene(object):
         self.task = task
         self._initial_task_pose = task.boundary_root().get_orientation()
         self._has_init_task = self._has_init_episode = False
+        self._episode_descriptions = None
         self._variation_index = 0
 
     def unload(self) -> None:
@@ -148,6 +149,8 @@ class Scene(object):
         # Let objects come to rest
         [self.pyrep.step() for _ in range(STEPS_BEFORE_EPISODE_START)]
         self._has_init_episode = True
+        # Store episode descriptions
+        self._episode_descriptions = descriptions
         return descriptions
 
     def reset(self) -> None:
@@ -452,7 +455,7 @@ class Scene(object):
         if not success:
             raise DemoError('Demo was completed, but was not successful.',
                             self.task)
-        processed_demo = Demo(demo)
+        processed_demo = Demo(demo, demo_description=self._episode_descriptions)
         processed_demo.num_reset_attempts = self._attempts + 1
         return processed_demo
 

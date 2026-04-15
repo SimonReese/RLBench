@@ -9,10 +9,11 @@ class Demo(object):
     Contains a list of observations, where each observation is a step in an instant
     """
 
-    def __init__(self, observations: List[Observation], random_seed=None, num_reset_attempts=None):
+    def __init__(self, observations: List[Observation], random_seed=None, num_reset_attempts=None, demo_description = None):
         self._observations = observations
         self.random_seed = random_seed
         self.num_reset_attempts = num_reset_attempts
+        self.demo_description = demo_description
 
     def __len__(self):
         return len(self._observations)

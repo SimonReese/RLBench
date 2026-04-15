@@ -1,3 +1,5 @@
+from typing import List
+
 import numpy as np
 
 
@@ -72,7 +74,7 @@ class Observation(object):
 
         :return: 1D array of observations.
         """
-        low_dim_data = [] if self.gripper_open is None else [[self.gripper_open]]
+        low_dim_data: List[np.ndarray] = [] if self.gripper_open is None else [np.array([self.gripper_open])]
         for data in [self.joint_velocities, self.joint_positions,
                      self.joint_forces,
                      self.gripper_pose, self.gripper_joint_positions,

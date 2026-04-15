@@ -62,7 +62,7 @@ class SlideBlock(Task):
         # Generate appropriate task instuction
         instruction = f"Slide the {position} block with respect to the robot to the target area"
         self.register_success_conditions([self.condition])
-        print(instruction)
+        #print(instruction)
         return [instruction]
 
     def variation_count(self) -> int:

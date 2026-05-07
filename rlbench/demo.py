@@ -1,5 +1,5 @@
 import numpy as np
-from typing import List
+from typing import Any, Dict, List, Optional, Union, Tuple
 from rlbench.backend.observation import Observation
 
 
@@ -20,6 +20,10 @@ class Demo(object):
 
     def __getitem__(self, i) -> Observation:
         return self._observations[i]
+    
+    def __iter__(self):
+        return iter(self._observations)
 
     def restore_state(self):
+        assert self.random_seed is not None
         np.random.set_state(self.random_seed)

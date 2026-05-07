@@ -8,6 +8,7 @@ import numpy as np
 from PIL import Image
 from natsort import natsorted
 from pyrep.objects import VisionSensor
+from scipy.spatial.transform import Rotation
 
 from rlbench.backend.const import *
 from rlbench.backend.utils import image_to_float_array, rgb_handles_to_mask
@@ -169,7 +170,13 @@ def get_stored_demos(amount: int, image_paths: bool, dataset_root: str,
 
         # If we need to have images as array in observation dictionary (and not path), we load each array image in dictionary
         if not image_paths:
+            l_sh_depth_m = None
+            r_sh_depth_m = None
+            wrist_depth_m = None
+            oh_depth_m = None
+            front_depth_m = None
             for i in range(num_steps):
+                # Read all RGB Images -----------------------------------
                 if obs_config.left_shoulder_camera.rgb:
                     obs[i].left_shoulder_rgb = np.array(
                         _resize_if_needed(
@@ -196,6 +203,7 @@ def get_stored_demos(amount: int, image_paths: bool, dataset_root: str,
                             Image.open(obs[i].front_rgb),
                             obs_config.front_camera.image_size))
 
+                # Manage all depth --------------------------
                 if obs_config.left_shoulder_camera.depth or obs_config.left_shoulder_camera.point_cloud:
                     l_sh_depth = image_to_float_array(
                         _resize_if_needed(
@@ -271,27 +279,33 @@ def get_stored_demos(amount: int, image_paths: bool, dataset_root: str,
                     else:
                         obs[i].front_depth = None
 
+                # Manage all point cloud ----------------------------
                 if obs_config.left_shoulder_camera.point_cloud:
+                    assert l_sh_depth_m is not None
                     obs[i].left_shoulder_point_cloud = VisionSensor.pointcloud_from_depth_and_camera_params(
                         l_sh_depth_m,
                         obs[i].misc['left_shoulder_camera_extrinsics'],
                         obs[i].misc['left_shoulder_camera_intrinsics'])
                 if obs_config.right_shoulder_camera.point_cloud:
+                    assert r_sh_depth_m is not None
                     obs[i].right_shoulder_point_cloud = VisionSensor.pointcloud_from_depth_and_camera_params(
                         r_sh_depth_m,
                         obs[i].misc['right_shoulder_camera_extrinsics'],
                         obs[i].misc['right_shoulder_camera_intrinsics'])
                 if obs_config.overhead_camera.point_cloud:
+                    assert oh_depth_m is not None
                     obs[i].overhead_point_cloud = VisionSensor.pointcloud_from_depth_and_camera_params(
                         oh_depth_m,
                         obs[i].misc['overhead_camera_extrinsics'],
                         obs[i].misc['overhead_camera_intrinsics'])
                 if obs_config.wrist_camera.point_cloud:
+                    assert wrist_depth_m is not None
                     obs[i].wrist_point_cloud = VisionSensor.pointcloud_from_depth_and_camera_params(
                         wrist_depth_m,
                         obs[i].misc['wrist_camera_extrinsics'],
                         obs[i].misc['wrist_camera_intrinsics'])
                 if obs_config.front_camera.point_cloud:
+                    assert front_depth_m is not None
                     obs[i].front_point_cloud = VisionSensor.pointcloud_from_depth_and_camera_params(
                         front_depth_m,
                         obs[i].misc['front_camera_extrinsics'],
@@ -333,3 +347,67 @@ def _resize_if_needed(image, size):
     if image.size[0] != size[0] or image.size[1] != size[1]:
         image = image.resize(size)
     return image
+
+
+def get_panda_gripper_open_amount(gripper_joint_positions: np.ndarray) -> List[float]:
+        """Gets the gripper open state for the panda gripper. 1 means open, whilst 0 means closed.
+
+        PANDA_JOINT_INTERVALS_LIST = [
+            [0.0, 0.03999999910593033],
+            [0.0, 0.03999999910593033]
+        ]
+
+        :param gripper_joint_positions: numpy.ndarray containing the current position of the gripper joints
+
+        :return: A list of floats between 0 and 1 representing the gripper open
+            state for each joint. 1 means open, whilst 0 means closed.
+        """
+        PANDA_JOINT_INTERVALS_LIST = [[0.0, 0.03999999910593033], [0.0, 0.03999999910593033]]
+        joint_intervals_list = PANDA_JOINT_INTERVALS_LIST
+        joint_intervals = np.array(joint_intervals_list)
+        joint_range = joint_intervals[:, 1] - joint_intervals[:, 0]
+        return list(np.clip((np.array(
+            gripper_joint_positions) - joint_intervals[:, 0]) /
+                            joint_range, 0.0, 1.0))
+
+
+# ------- SPATIAL POSE TRANSFORNATIONS UTILITY FUNCTIONS ------------
+def pose_to_T(p, q):
+    T = np.eye(4)
+    T[:3, :3] = Rotation.from_quat(q).as_matrix()
+    T[:3, 3] = p
+    return T
+
+def invert_T(T):
+    Rm = T[:3, :3]
+    p = T[:3, 3]
+
+    T_inv = np.eye(4)
+    T_inv[:3, :3] = Rm.T
+    T_inv[:3, 3] = -Rm.T @ p
+    return T_inv
+
+def delta_pose_ee(p_cur, q_cur, p_des, q_des):
+    """
+    Returns delta pose in EE frame as:
+    [dx, dy, dz, qx, qy, qz, qw]
+    """
+    T_cur = pose_to_T(p_cur, q_cur)
+    T_des = pose_to_T(p_des, q_des)
+
+    T_delta = invert_T(T_cur) @ T_des
+
+    p_delta = T_delta[:3, 3]
+    q_delta = Rotation.from_matrix(T_delta[:3, :3]).as_quat()
+
+    return np.hstack((p_delta, q_delta))
+
+def quaternion_to_euler(quaternion: np.ndarray) -> np.ndarray:
+    rotation = Rotation.from_quat(quaternion)
+    angles = rotation.as_euler("xyz")
+    return angles
+
+def euler_to_quaternion(euler: np.ndarray, format: str = "xyz") -> np.ndarray:
+    rotation = Rotation.from_euler(format, euler)
+    quaternion = rotation.as_quat()
+    return quaternion

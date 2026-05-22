@@ -92,7 +92,7 @@ class TaskEnvironment(object):
     def get_observation(self) -> Observation:
         return self._scene.get_observation()
 
-    def step(self, action) -> Tuple[Observation, int, bool]:
+    def step(self, action = None) -> Tuple[Observation, int, bool]:
         """
             Returns observation, reward, terminate
         """
@@ -100,7 +100,10 @@ class TaskEnvironment(object):
         if not self._reset_called:
             raise RuntimeError(
                 "Call 'reset' before calling 'step' on a task.")
-        self._action_mode.action(self._scene, action)
+        if action is not None:
+            self._action_mode.action(self._scene, action)
+        else:
+            self._scene.step()
         success, terminate = self._task.success()
         reward = float(success)
         if self._shaped_rewards:

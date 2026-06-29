@@ -121,6 +121,8 @@ from rlbench.tasks.unload_container import UnloadContainer
 from rlbench.tasks.cube_container import CubeContainer
 from rlbench.tasks.object_container import ObjectContainer
 from rlbench.tasks.container_place import ContainerPlace
+from rlbench.tasks.arrange_objects import ArrangeObjects
+from rlbench.tasks.arrange_objects_external import ArrangeObjectsExternal
 
 from enum import EnumMeta, Enum
 class SpatialTasks(EnumMeta):
@@ -129,6 +131,8 @@ class SpatialTasks(EnumMeta):
     CUBE_CONTAINER = CubeContainer
     OBJECT_CONTAINER = ObjectContainer
     CONTAINER_PLACE = ContainerPlace
+    ARRANGE_OBJECTS = ArrangeObjects
+    ARRANGE_OBJECTS_EXTERNAL = ArrangeObjectsExternal
 
 SPATIAL_TASKS = [
     SlideBlock, # TODO: fix
@@ -136,6 +140,8 @@ SPATIAL_TASKS = [
     CubeContainer,
     ObjectContainer,
     ContainerPlace,
+    ArrangeObjects,
+    ArrangeObjectsExternal,
 ]
 
 RLBENCH_TASKS = [

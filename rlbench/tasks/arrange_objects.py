@@ -1,5 +1,5 @@
 import os
-from typing import List, Union
+from typing import List, Tuple, Union
 import numpy
 from rlbench.backend.conditions import DetectedCondition, NothingGrasped
 from rlbench.backend.spawn_boundary import SpawnBoundary
@@ -33,7 +33,8 @@ class ArrangeObjects(Task):
         "controller",
         "mug",
         "pcmouse",
-        "tvremote",
+        "chair"
+        #"tvremote",
     ]
 
     def init_task(self) -> None:
@@ -63,14 +64,13 @@ class ArrangeObjects(Task):
 
     def init_episode(self, index: int) -> List[str]:
         # Ensure task is model free
-        assert len(self.imported_models) == 0
+        if len(self.imported_models) != 0: self.cleanup()
         assert self.reference_model is None
         assert self.target_object is None
         assert self.target_sensor is None
         
         # Select 3 random objects
         selected = numpy.random.choice(self.OBJECTS, size=3, replace=False)
-        print(f"Spawning {selected[0]}")
         # Import models
         for model in selected:
             selected_path = f"{ASSETS_DIR}/{model}/{model}.ttm"
@@ -87,10 +87,20 @@ class ArrangeObjects(Task):
         self.spawnL.sample(self.imported_models[1])                   # Model 1 on left wrt robot
         self.spawnR.sample(self.imported_models[2])                   # Model 2 on right
 
+        # Align sensors
+        # Place sensor_root aligned with model
+        ref_pose = self.reference_model.get_pose()  
+        sensors_pose = self.sensors_root.get_pose()  
+        sensors_pose[0] = ref_pose[0]   # x  
+        sensors_pose[1] = ref_pose[1]   # y  
+        sensors_pose[3:] = ref_pose[3:] # orientamento (quaternione)  
+        # sensors_pose[2] rimane la z originale di sensors_root (quota del tavolo)  
+        self.sensors_root.set_pose(sensors_pose)
+
         # Register objects as graspable
         self.register_graspable_objects(self.imported_models[1:])
 
-        # Select pick object
+        # Select target object
         pick_sides = ["left", "right"]
         pick_side = numpy.random.choice(pick_sides)
         pick_str = f"Pick the object on the {pick_side} side with respect to the robot" # ...
@@ -149,15 +159,6 @@ class ArrangeObjects(Task):
         assert self.approach_dummy is not None
         assert self.grasp_dummy is not None
         assert self.target_sensor is not None
-
-        # Place sensor_root aligned with model
-        ref_pose = self.reference_model.get_pose()  
-        sensors_pose = self.sensors_root.get_pose()  
-        sensors_pose[0] = ref_pose[0]   # x  
-        sensors_pose[1] = ref_pose[1]   # y  
-        sensors_pose[3:] = ref_pose[3:] # orientamento (quaternione)  
-        # sensors_pose[2] rimane la z originale di sensors_root (quota del tavolo)  
-        self.sensors_root.set_pose(sensors_pose)
 
         # Set destination waypoints position and orientation for all (mainly for quota and grasping orientation)
         self.way0.set_pose(self.approach_dummy.get_pose())  # Approach

@@ -12,7 +12,7 @@ from rlbench.backend.waypoints import Waypoint
 
 ASSETS_DIR = os.path.join(os.path.dirname(__file__), '../assets')
 
-class ArrangeObjectsExternal(Task):
+class ArrangeObjectsExternalPickup(Task):
     """Arrange an object next to the central one
 
         Variations:
@@ -37,27 +37,14 @@ class ArrangeObjectsExternal(Task):
     VARIATION_MAPPING_STRINGS = [
         # position wrt robot
         "in front of",
-        "behind",
-        "in on the left side of",
-        "in on the right side of",
         # wrt camera
         "in front of",
-        "behind",
-        "in on the left side of",
-        "in on the right side of"
     ]
 
     VARIATION_MAPPING_SENSORS = [
         # sensors wrt robot
         "behind",
         "front",
-        "left",
-        "right",
-        # sensors wrt camera
-        "front",
-        "behind",
-        "right",
-        "left"
     ]
 
     OBJECTS = [
@@ -103,7 +90,7 @@ class ArrangeObjectsExternal(Task):
         
         # Select 3 random objects
         selected = numpy.random.choice(self.OBJECTS, size=3, replace=False)
-        print(f"Spawning {selected[0]}")
+        
         # Import models
         for model in selected:
             selected_path = f"{ASSETS_DIR}/{model}/{model}.ttm"
@@ -126,11 +113,17 @@ class ArrangeObjectsExternal(Task):
         # Select pick object
         pick_sides = ["left", "right"]
         pick_side = numpy.random.choice(pick_sides)
-        pick_str = f"Pick the object on the {pick_side} side with respect to the robot" # ...
-        # Store target object
-        self.target_object = self.imported_models[1] if pick_side == "left" else self.imported_models[2]
+        # Depending on variation select which object is the target
+        if index == 0: # side wrt robot
+            pick_str = f"Pick the object on the {pick_side} side with respect to the robot" # ...
+            # Store target object
+            self.target_object = self.imported_models[1] if pick_side == "left" else self.imported_models[2]
+        else: #index == 1 # side wrt camera
+            pick_str = f"Pick the object on the {pick_side} side with respect to the external camera"
+            # Store target object - flipped
+            self.target_object = self.imported_models[2] if pick_side == "left" else self.imported_models[1]
 
-        # Depending on variation, select target sensor
+        # Depending on variation, select target sensor - 0 the 'behind' in front of robot, 1 the 'front' in front of camera
         self.target_sensor = ProximitySensor(f"proximity_{self.VARIATION_MAPPING_SENSORS[index]}")
 
         # Construct string
@@ -146,15 +139,15 @@ class ArrangeObjectsExternal(Task):
             NothingGrasped(self.robot.gripper)  
         ])  
         
-        if index < 4:
+        if index == 0:
             task_instr = f"{pick_str} and {place_str} with respect to the robot."
         else:
             task_instr = f"{pick_str} and {place_str} with respect to the external camera."
-        print(f"Variation: {index}\nInstruction: {task_instr}")
+        #print(f"Variation: {index}\nInstruction: {task_instr}")
         return [task_instr]
 
     def variation_count(self) -> int:
-        return 8
+        return 2
     
     def is_static_workspace(self) -> bool:  
         return True
